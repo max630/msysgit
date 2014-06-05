@@ -96,7 +96,8 @@ test -e /bin/git.exe -o -e /git/git.exe || {
 	echo -------------------------------------------------------
 
 	cd /git &&
-	make install
+	make -j2 &&
+        make install
 
 	case $? in
 	0)
