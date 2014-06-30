@@ -68,17 +68,14 @@ Name: ext; Description: Windows Explorer integration; Types: default
 Name: ext\reg; Description: Simple context menu (Registry based); Flags: exclusive; Types: default
 Name: ext\reg\shellhere; Description: Git Bash Here; Types: default
 Name: ext\reg\guihere; Description: Git GUI Here; Types: default
-Name: ext\cheetah; Description: Advanced context menu (git-cheetah plugin); Flags: exclusive; Types: default
 Name: assoc; Description: Associate .git* configuration files with the default text editor; Types: default
 Name: assoc_sh; Description: Associate .sh files to be run with Bash; Types: default
 Name: consolefont; Description: Use a TrueType font in all console windows (not only for Git Bash)
 
 [Files]
 ; Install files that might be in use during setup under a different name.
-Source: git-cheetah\git_shell_ext.dll; DestDir: {app}\git-cheetah; DestName: git_shell_ext.dll.new; Flags: replacesameversion; Components: ext\cheetah; AfterInstall: DeleteFromVirtualStore
-Source: git-cheetah\git_shell_ext64.dll; DestDir: {app}\git-cheetah; DestName: git_shell_ext64.dll.new; Flags: replacesameversion; Components: ext\cheetah; AfterInstall: DeleteFromVirtualStore
 
-Source: *; DestDir: {app}; Excludes: \*.bmp, gpl-2.0.rtf, \*.iss, \tmp.*, \bin\*install*, \git-cheetah\git_shell_ext.dll, \git-cheetah\git_shell_ext64.dll; Flags: recursesubdirs replacesameversion sortfilesbyextension; AfterInstall: DeleteFromVirtualStore
+Source: *; DestDir: {app}; Excludes: \*.bmp, gpl-2.0.rtf, \*.iss, \tmp.*, \bin\*install*; Flags: recursesubdirs replacesameversion sortfilesbyextension; AfterInstall: DeleteFromVirtualStore
 Source: ReleaseNotes.rtf; DestDir: {app}; Flags: isreadme replacesameversion; AfterInstall: DeleteFromVirtualStore
 
 [Icons]
@@ -153,9 +150,6 @@ Root: HKCU; Subkey: Software\Classes\sh_auto_file\ShellEx\DropHandler; ValueType
 Type: files; Name: {app}\bin\git-*.exe
 Type: files; Name: {app}\libexec\git-core\git-*.exe
 Type: files; Name: {app}\libexec\git-core\git.exe
-
-; Delete any (temporary) git-cheetah files.
-Type: files; Name: {app}\git-cheetah\*.*
 
 ; Delete any manually created shortcuts.
 Type: files; Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\Git Bash.lnk
@@ -299,12 +293,10 @@ begin
 
     // Use the Restart Manager API when installing the shell extension on Windows Vista and above.
     if Version.Major>=6 then begin
-        SetArrayLength(Modules,5);
+        SetArrayLength(Modules,3);
         Modules[0]:=ExpandConstant('{app}\bin\msys-1.0.dll');
         Modules[1]:=ExpandConstant('{app}\bin\tcl85.dll');
         Modules[2]:=ExpandConstant('{app}\bin\tk85.dll');
-        Modules[3]:=ExpandConstant('{app}\git-cheetah\git_shell_ext.dll');
-        Modules[4]:=ExpandConstant('{app}\git-cheetah\git_shell_ext64.dll');
         SessionHandle:=FindProcessesUsingModules(Modules,Processes);
     end else begin
         SetArrayLength(Modules,3);
@@ -312,11 +304,6 @@ begin
         Modules[1]:=ExpandConstant('{app}\bin\tcl85.dll');
         Modules[2]:=ExpandConstant('{app}\bin\tk85.dll');
         SessionHandle:=FindProcessesUsingModules(Modules,ProcsCloseRequired);
-
-        SetArrayLength(Modules,2);
-        Modules[0]:=ExpandConstant('{app}\git-cheetah\git_shell_ext.dll');
-        Modules[1]:=ExpandConstant('{app}\git-cheetah\git_shell_ext64.dll');
-        SessionHandle:=FindProcessesUsingModules(Modules,ProcsCloseOptional) or SessionHandle;
 
         // Misuse the "Restartable" flag to indicate which processes are required
         // to be closed before setup can continue, and which just should be closed
@@ -1138,23 +1125,6 @@ begin
         end;
     end;
 
-    // It is either the Registry-based context menu entries, or the shell extension.
-    if IsComponentSelected('ext\cheetah') then begin
-        DeleteContextMenuEntries;
-
-        if isWin64 then begin
-            FileName:=AppDir+'\git-cheetah\git_shell_ext64.dll';
-        end else begin
-            FileName:=AppDir+'\git-cheetah\git_shell_ext.dll';
-        end;
-        if not ReplaceInUseFile(FileName,FileName+'.new',True,Msg) then begin
-            // This is in fact a critical error, but "Abort" does not work during ssPostInstall anymore and
-            // we have no other way of aborting the installation, so just notify the user and continue.
-            SuppressibleMsgBox(Msg,mbError,MB_OK,IDOK);
-            Log('Line {#__LINE__}: Replacing file "'+FileName+'" failed.');
-        end;
-    end;
-
     {
         Restart any processes that were shut down via the Restart Manager
     }
@@ -1373,26 +1343,4 @@ begin
 
     DeleteContextMenuEntries;
 
-    if isWin64 then begin
-        FileName:=AppDir+'\git-cheetah\git_shell_ext64.dll';
-    end else begin
-        FileName:=AppDir+'\git-cheetah\git_shell_ext.dll';
-    end;
-    if FileExists(FileName) then begin
-        if not UnregisterServer(Is64BitInstallMode,FileName,False) then begin
-            Msg:='Line {#__LINE__}: Unable to unregister file "'+FileName+'". Please do it manually by running "regsvr32 /u '+ExtractFileName(FileName)+'".';
-
-            // This is not a critical error, so just notify the user and continue.
-            SuppressibleMsgBox(Msg,mbError,MB_OK,IDOK);
-            Log(Msg);
-        end;
-
-        if not DeleteFile(FileName) then begin
-            Msg:='Line {#__LINE__}: Unable to delete file "'+FileName+'". Please do it manually after logging off and on again.';
-
-            // This is not a critical error, so just notify the user and continue.
-            SuppressibleMsgBox(Msg,mbError,MB_OK,IDOK);
-            Log(Msg);
-        end;
-    end;
 end;
