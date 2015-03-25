@@ -60,7 +60,6 @@ Here is a step-by-step instruction for the maintainer:
 
    cd /share/WinGit
    git checkout master
-   start ReleaseNotes.rtf # edit and save
    git commit -a
    git tag -a -m "Git-<version>" Git-<version>
    ./release.sh <version>

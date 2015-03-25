@@ -99,7 +99,6 @@ cp $MSYSGITROOT/etc/inputrc etc/ &&
 sed 's/ = \/mingw\// = \//' < $MSYSGITROOT/etc/gitconfig > etc/gitconfig &&
 cp $MSYSGITROOT/etc/gitattributes etc/ &&
 cp $MSYSGITROOT/share/WinGit/Git\ Bash.vbs . &&
-cp $MSYSGITROOT/share/WinGit/ReleaseNotes.rtf . &&
 sed 's@/git/contrib/completion@/etc@g' \
 	< $MSYSGITROOT/etc/profile > etc/profile &&
 cp $MSYSGITROOT/share/resources/git.ico etc/ &&
