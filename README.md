@@ -1,8 +1,17 @@
+# Shortcut: Git for Windows installer build
+
+* make sure submodules are checked out
+* `(cd git && make && make install)`
+* `/share/WinGit/release.sh -f -n `_VERSION_
+ 
+Note that this creates "Git-_VERSION_" tag. Push up or remove it
+
 # Build environment for Git for Windows
 
 This is the build environment -- also known as msysGit -- for [Git for Windows](http://msysgit.github.io/).
 
 The easiest way is to install it via the [net installer](https://github.com/msysgit/msysgit/releases). This installer will clone our [two](http://github.com/msysgit/msysgit) [repositories](http://github.com/msysgit/git), including all the necessary components to build Git for Windows, and perform an initial build.
+
 
 # The build environment
 
